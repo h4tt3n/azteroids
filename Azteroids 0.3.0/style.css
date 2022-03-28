@@ -1,0 +1,256 @@
+:root {
+    
+    font-size: 16px;
+    font-family: Open Sans;
+    background-color: black;
+    overflow: hidden;
+
+    /* Global vars */
+    --text-primary: #b6b6b6;
+    --text-secondary: #ececec;
+    --bg-primary: #23233e;
+    --bg-secondary: black;
+}
+
+body {
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+    margin: 0;
+    padding: 0;
+}
+
+canvas {
+  position: absolute;
+  width: 45%;
+  height: 80%;
+  border: 3px solid darkgray;
+  top: 10%;
+}
+
+#canvas1 {
+  left: 8%;
+}
+
+#canvas2 {
+  right: 0%;
+}
+
+.navbar {
+    position: fixed;
+    background-color: var(--bg-primary);
+    width: 5rem;
+    height: 100vh;
+    transition: width 600ms ease;
+}
+
+.navbar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-item{
+    width: 100%
+}
+
+
+
+.navbar:hover {
+    width: 16rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    height: 5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    filter: grayscale(100%) opacity(0.7);
+    transition: var(--transition-speed);
+}
+
+.nav-link:hover {
+    filter: grayscale(0%) opacity(1);
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.link-text {
+    display: none;
+    margin-left: 1rem;
+}
+
+.navbar:hover .link-text{
+    display: block;
+}
+
+.nav-link svg {
+    width: 2rem;
+    min-width: 2rem;
+    margin: 0 1.5rem;
+    animation: RGB 1s;
+    animation-iteration-count: infinite;
+    animation-duration: alternative;
+}
+
+
+.fa-primary{
+    color: #ff7eee;
+}
+
+.fa-secondary {
+    color: #df49a6;
+}
+
+.fa-primary,
+.fa-secondary{
+    transition: var(--transition-speed);
+}
+
+.logo{
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    font-size: 1.5rem;
+    letter-spacing: 0.3ch;
+    width: 100%;
+}
+
+.logo svg {
+    transform: rotate(0deg);
+    transition: var(--transition-speed);
+}
+
+.logo-text{
+    display: inline;
+    position: absolute;
+    left: -999px;
+    transition: var(--transition-speed);
+}
+
+.navbar:hover .logo svg{
+    transform: rotate(-180deg);
+    animation: RGB 1s;
+    animation-iteration-count: infinite;
+    animation-duration: alternative;
+}
+
+.navbar:hover .logo-text{
+    position: absolute;
+    left: 3.15rem;
+    transition: var(--transition-speed);
+}
+
+.sun {
+    width: 500px;
+    height: 400px;
+    top: 33%;
+    left: 37%;
+    position: absolute;
+
+}
+
+.headline {
+    position: absolute;
+    top: 2%;
+    left: 35%;
+    text-align: center;
+    font-size: 42px;
+    height: 20%;
+}
+
+
+.track {
+    stroke: #224422;
+  }
+
+.path-1 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('M 0 0 m -3 0 c 0 2 6 2 6 0 c 0 -2 -6 -2 -6 0');
+    animation: move -8s 8s linear infinite;
+  }
+
+  .path-2 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('m 0 0 m -5 0 c 0 3 10 3 10 0 c 0 -3 -10 -3 -10 0');
+    animation: move -16s 24s linear infinite;
+  }
+
+  .path-3 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('m 0 0 m -7 0 c 0 4 14 4 14 0 c 0 -4 -14 -4 -14 0');
+    animation: move 48s linear infinite;
+  }
+
+  .path-4 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('M -2 0 C -4 6 -8 3 -8 -2 C -8 -7 -3 -4 -2 0 C -1 4 3 5 3 -2 C 3 -8 10 -4 8 2 C 6 7 0 -6 -2 0');
+    animation: move 40s linear infinite;
+  }
+
+  .path-5 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('M -2 0 C -4 6 -8 3 -8 -2 C -8 -7 -3 -4 -2 0 C -1 4 3 5 3 -2 C 3 -8 10 -4 8 2 C 6 7 0 -6 -2 0');
+    animation: move -6s 40s linear infinite;
+  }
+
+  .path-6 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('M -2 0 C -4 6 -8 3 -8 -2 C -8 -7 -3 -4 -2 0 C -1 4 3 5 3 -2 C 3 -8 10 -4 8 2 C 6 7 0 -6 -2 0');
+    animation: move -8s 40s linear infinite;
+  }
+  
+  .path-7 {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    offset-path: path('M -2 0 C -4 6 -8 3 -8 -2 C -8 -7 -3 -4 -2 0 C -1 4 3 5 3 -2 C 3 -8 10 -4 8 2 C 6 7 0 -6 -2 0');
+    animation: move -10s 40s linear infinite;
+  }
+  
+  @keyframes move {
+    0% { 
+      motion-offset: 0%;
+      offset-distance: 0%;
+      transform: scale(0.8);
+    }
+    25% { 
+      motion-offset: 25%;
+      offset-distance: 25%;
+      transform: scale(1.0);
+    }
+    50% { 
+      motion-offset: 50%;
+      offset-distance: 50%;
+      transform: scale(0.8);
+    }
+    75% { 
+      motion-offset: 75%;
+      offset-distance: 75%;
+      transform: scale(0.6);
+    }
+    100% { 
+      motion-offset: 100%;
+      offset-distance: 100%;
+      transform: scale(0.8);
+    }
+  }
