@@ -414,7 +414,7 @@ function renderScene() {
             if(ships[j].isAlive === false) {continue;}
             
             var img = images[ships[j].image];
-            ctx[i].rotate(ships[j].angle);
+            //ctx[i].rotate(ships[j].angle);
             ctx[i].drawImage(
                 img, 
                 ships[j].position.x - ships[j].radius * 2, 
