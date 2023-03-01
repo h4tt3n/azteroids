@@ -398,7 +398,11 @@ function renderScene() {
             if(asteroids[j].isAlive === false) {continue;}
             
             var img = images[asteroids[j].image];
-            //ctx[i].rotate(asteroids[j].angle + 0.25 * 2 * Math.PI);
+
+            ctx[i].translate(asteroids[j].position.x, asteroids[j].position.y)
+            ctx[i].rotate(asteroids[j].angle + 0.25 * 2 * Math.PI);
+            ctx[i].translate(-asteroids[j].position.x, -asteroids[j].position.y)
+
             ctx[i].drawImage(
                 img, 
                 asteroids[j].position.x - asteroids[j].radius, 
