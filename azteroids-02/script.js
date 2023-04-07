@@ -4,7 +4,7 @@
 
 // Consts
 // Gravitational constant
-const G = 1000; 
+const G = 500; 
 
 // Timestep, delta-time
 const dt = 1 / 60;
@@ -284,7 +284,7 @@ function mainLoop() {
 
     controlShip();
 
-    calculateGravityAmong(asteroids);
+    //calculateGravityAmong(asteroids);
     calculateGravityBetween(planets, asteroids);
     calculateGravityBetween(planets, bullets);
     calculateGravityBetween(planets, ships);
