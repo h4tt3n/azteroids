@@ -368,7 +368,6 @@ function loadSoundListIntoArray(list, array) {
 
 function renderScene() {
 
-    
     for( let i = 0; i < 2 ; i++) {
 
         // clear screen
@@ -376,16 +375,22 @@ function renderScene() {
         ctx[i].fillStyle = "black";
         ctx[i].fillRect(0, 0, canvas[i].width, canvas[i].height);
 
+        // set camera
+        ctx[i].save(); // Save the current context state
+        ctx[i].translate(canvas[i].width / 2, canvas[i].height / 2); // Translate to the center of the canvas
+        ctx[i].scale(camera[i].zoom, camera[i].zoom); // Apply zoom
+        ctx[i].translate(-camera[i].position.x, -camera[i].position.y); // Apply position
+
         // Bullets
         for(let j = 0 ; j < bullets.length ; j++) {
             
             if(bullets[j].isAlive === false ) { continue;}
                 
-            var x = (bullets[j].position.x - camera[i].position.x) * camera[i].zoom + canvas[i].width/2;
-            var y = (bullets[j].position.y - camera[i].position.y) * camera[i].zoom + canvas[i].height/2;
-            ctx[i].setTransform(1, 0, 0, 1, x, y);
+            var x = bullets[j].position.x
+            var y = bullets[j].position.y
+            //ctx[i].setTransform(1, 0, 0, 1, x, y);
             ctx[i].beginPath();
-            ctx[i].arc(0, 0, bulletRadius * camera[i].zoom, 0, Math.PI*2);
+            ctx[i].arc(x, y, bulletRadius, 0, Math.PI*2);
             ctx[i].fillStyle = "#FFFFFF";
             ctx[i].fill();
             ctx[i].closePath();
@@ -393,44 +398,52 @@ function renderScene() {
 
         // asteroids
         for(let j = 0 ; j < asteroids.length ; j++) {
-
             if(asteroids[j].isAlive === false) {continue;}
             
             var img = images[asteroids[j].image];
-            var x = (asteroids[j].position.x - camera[i].position.x) * camera[i].zoom + canvas[i].width/2;
-            var y = (asteroids[j].position.y - camera[i].position.y) * camera[i].zoom + canvas[i].height/2;
-            ctx[i].setTransform(1, 0, 0, 1, x, y);
-            ctx[i].rotate(asteroids[j].angle + 0.25 * 2 * Math.PI);
-            ctx[i].drawImage(img, -asteroids[j].radius * camera[i].zoom, -asteroids[j].radius * camera[i].zoom, asteroids[j].radius*2 * camera[i].zoom, asteroids[j].radius*2 * camera[i].zoom);
+            var x = asteroids[j].position.x
+            var y = asteroids[j].position.y
+    
+            ctx[i].save(); // Save the current context state
+            ctx[i].translate(x, y); // Translate to the asteroid's position
+            ctx[i].rotate(asteroids[j].angle + 0.25 * 2 * Math.PI); // Rotate context
+            ctx[i].drawImage(img, -asteroids[j].radius, -asteroids[j].radius, asteroids[j].radius*2, asteroids[j].radius*2);
+            ctx[i].restore(); // Restore the context state
         }
 
-        // ship
+        // ships
         for(let j = 0 ; j < ships.length ; j++) {
-
             if(ships[j].isAlive === false) {continue;}
             
             var img = images[ships[j].image];
-            var x = (ships[j].position.x - camera[i].position.x) * camera[i].zoom + canvas[i].width/2;
-            var y = (ships[j].position.y - camera[i].position.y) * camera[i].zoom + canvas[i].height/2;
-            ctx[i].setTransform(1, 0, 0, 1, x, y);
-            ctx[i].rotate(ships[j].angle);
-            ctx[i].drawImage(img, -ships[j].radius * 2 * camera[i].zoom, -ships[j].radius * camera[i].zoom, ships[j].radius*4 * camera[i].zoom, ships[j].radius*2 * camera[i].zoom);
+            var x = ships[j].position.x
+            var y = ships[j].position.y
+    
+            ctx[i].save(); // Save the current context state
+            ctx[i].translate(x, y); // Translate to the ship's position
+            ctx[i].rotate(ships[j].angle); // Rotate context
+            ctx[i].drawImage(img, -ships[j].radius * 2, -ships[j].radius, ships[j].radius*4, ships[j].radius*2);
+            ctx[i].restore(); // Restore the context state
         }
 
         // Planets
         for(let j = 0 ; j < planets.length ; j++) {
-
             if(planets[j].isAlive === false) {continue;}
             
             var img = images[planets[j].image];
-            var x = (planets[j].position.x - camera[i].position.x) * camera[i].zoom + canvas[i].width/2;
-            var y = (planets[j].position.y - camera[i].position.y) * camera[i].zoom + canvas[i].height/2;
-            ctx[i].setTransform(1, 0, 0, 1, x, y);
-            ctx[i].rotate(planets[j].angle + 0.25 * 2 * Math.PI);
-            ctx[i].drawImage(img, -planets[j].radius * camera[i].zoom, -planets[j].radius * camera[i].zoom, planets[j].radius*2 * camera[i].zoom, planets[j].radius*2 * camera[i].zoom);
+            var x = planets[j].position.x
+            var y = planets[j].position.y
+    
+            ctx[i].save(); // Save the current context state
+            ctx[i].translate(x, y); // Translate to the planet's position
+            ctx[i].rotate(planets[j].angle + 0.25 * 2 * Math.PI); // Rotate context
+            ctx[i].drawImage(img, -planets[j].radius, -planets[j].radius, planets[j].radius*2, planets[j].radius*2);
+            ctx[i].restore(); // Restore the context state
         }
         
         showControls();
+
+        ctx[i].restore(); // Restore the context state
 
     }
 }
