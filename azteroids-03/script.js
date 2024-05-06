@@ -117,8 +117,8 @@ function initGame(){
     // Canvas & context
     for(let i = 0; i < 2; i++) {
 
-        canvas[i].setAttribute('width', window.innerWidth * 0.45);
-        canvas[i].setAttribute('height', window.innerHeight * 0.8);
+        canvas[i].setAttribute('width', window.innerWidth * 0.5);
+        canvas[i].setAttribute('height', window.innerHeight * 1);
     }
     
     // Load assets
