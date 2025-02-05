@@ -1,0 +1,28 @@
+:root {
+  font-size: 16px;
+  font-family: Open Sans;
+  background-color: black;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--bg-secondary);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+}
+
+#canvas1 {
+  left: 0%;
+  border-right: 10px solid darkgray;
+}
+
+#canvas2 {
+  right: 0%;
+  border-left: 10px solid darkgray;
+}
+
