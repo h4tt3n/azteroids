@@ -9,12 +9,19 @@ const G = 1000;
 const dt = 1 / 60;
 
 const shipTurnRate = 4.0;
-const shipThrustForce = 20000;
+const shipThrustForce = 2000;
 
-const bulletSpeed = 300;
+const bulletSpeed = 600;
 const bulletRadius = 5;
 const bulletLifeTime = 60;
 const timeBetweenBullets = 100;
+
+const gamepadDeadZone = 0.25;
+
+// Camera panning is defined in screen pixels, then converted to world units by zoom.
+// The ship always remains at least this far inside the canvas edge.
+const cameraPanRadiusPixels = 300;
+const cameraShipBorderPixels = 100;
 
 const textureList = [
     'img/RTS_Crate.png',
@@ -66,10 +73,13 @@ class Camera {
     constructor() {
         this.position = { x : 0, y : 0 };
         this.restPosition = { x : 0, y : 0 };
+        this.pan = { x : 0, y : 0 };
+        this.restPan = { x : 0, y : 0 };
         this.zoom = 0.5;
         this.maxZoom = 1.0;
         this.minZoom = 0.1;
         this.deltaZoom = 0.05;
+        this.deltaPan = 0.05;
         this.zoomSpeed = 0.01;
         this.restZoom = 0.5;
     }
@@ -77,6 +87,11 @@ class Camera {
     update() {
         const zoomDiff = this.restZoom - this.zoom;
         this.zoom += zoomDiff * this.deltaZoom;
+
+        const panDiffX = this.restPan.x - this.pan.x;
+        const panDiffY = this.restPan.y - this.pan.y;
+        this.pan.x += panDiffX * this.deltaPan;
+        this.pan.y += panDiffY * this.deltaPan;
     }
 }
 
@@ -222,12 +237,16 @@ class Game {
         this.ctx = [];
         this.camera = [];
         this.keyState = {};
+        this.gamepadSlots = [null, null];
+        this.gamepadState = [this.createGamepadState(), this.createGamepadState()];
         this.lastTimestamp = 0;
         this.accumulator = 0;
         this.maxFrameTime = 0.25;
 
         this.mainLoop = this.mainLoop.bind(this);
         this.resizeCanvas = this.resizeCanvas.bind(this);
+        this.gamepadConnected = this.gamepadConnected.bind(this);
+        this.gamepadDisconnected = this.gamepadDisconnected.bind(this);
         this.keyDown = this.keyDown.bind(this);
         this.keyUp = this.keyUp.bind(this);
     }
@@ -248,6 +267,98 @@ class Game {
         window.addEventListener('keydown', this.keyDown);
         window.addEventListener('keyup', this.keyUp);
         window.addEventListener('resize', this.resizeCanvas);
+        window.addEventListener('gamepadconnected', this.gamepadConnected);
+        window.addEventListener('gamepaddisconnected', this.gamepadDisconnected);
+        this.assignConnectedGamepads();
+    }
+
+    createGamepadState() {
+        return {
+            turnLeft : false,
+            turnRight : false,
+            thrust : false,
+            fire : false,
+            zoomOut : false,
+            zoomIn : false,
+            lookX : 0,
+            lookY : 0
+        };
+    }
+
+    gamepadConnected(event) {
+        this.assignGamepadToSlot(event.gamepad.index);
+    }
+
+    gamepadDisconnected(event) {
+        const playerIndex = this.gamepadSlots.indexOf(event.gamepad.index);
+        if(playerIndex === -1) { return; }
+
+        this.gamepadSlots[playerIndex] = null;
+        this.gamepadState[playerIndex] = this.createGamepadState();
+    }
+
+    assignConnectedGamepads() {
+        if(!navigator.getGamepads) { return; }
+
+        const gamepads = navigator.getGamepads();
+        for(let i = 0; i < gamepads.length; i++) {
+            if(gamepads[i] && gamepads[i].connected) {
+                this.assignGamepadToSlot(gamepads[i].index);
+            }
+        }
+    }
+
+    assignGamepadToSlot(gamepadIndex) {
+        if(this.gamepadSlots.includes(gamepadIndex)) { return; }
+
+        const playerIndex = this.gamepadSlots.indexOf(null);
+        if(playerIndex === -1) { return; }
+
+        this.gamepadSlots[playerIndex] = gamepadIndex;
+    }
+
+    gamepadButtonPressed(gamepad, buttonIndex) {
+        const button = gamepad.buttons[buttonIndex];
+        return button !== undefined && (button.pressed || button.value > 0.5);
+    }
+
+    pollGamepads() {
+        this.assignConnectedGamepads();
+        if(!navigator.getGamepads) { return; }
+
+        const gamepads = navigator.getGamepads();
+        for(let playerIndex = 0; playerIndex < this.gamepadSlots.length; playerIndex++) {
+            const gamepadIndex = this.gamepadSlots[playerIndex];
+            const gamepad = gamepadIndex === null ? null : gamepads[gamepadIndex];
+
+            if(!gamepad || !gamepad.connected) {
+                this.gamepadSlots[playerIndex] = null;
+                this.gamepadState[playerIndex] = this.createGamepadState();
+                continue;
+            }
+
+            const horizontalAxis = gamepad.axes[0] || 0;
+            const verticalAxis = gamepad.axes[1] || 0;
+            const rightStickX = gamepad.axes[2] || 0;
+            const rightStickY = gamepad.axes[3] || 0;
+            const rightStickMagnitude = Math.min(1, Math.hypot(rightStickX, rightStickY));
+            const rightStickStrength = rightStickMagnitude > gamepadDeadZone
+                ? (rightStickMagnitude - gamepadDeadZone) / (1 - gamepadDeadZone)
+                : 0;
+            const rightStickScale = rightStickMagnitude > 0
+                ? rightStickStrength / rightStickMagnitude
+                : 0;
+            this.gamepadState[playerIndex] = {
+                turnLeft : horizontalAxis < -gamepadDeadZone || this.gamepadButtonPressed(gamepad, 14),
+                turnRight : horizontalAxis > gamepadDeadZone || this.gamepadButtonPressed(gamepad, 15),
+                thrust : verticalAxis < -gamepadDeadZone || this.gamepadButtonPressed(gamepad, 12),
+                fire : this.gamepadButtonPressed(gamepad, 0),
+                zoomOut : this.gamepadButtonPressed(gamepad, 4),
+                zoomIn : this.gamepadButtonPressed(gamepad, 5),
+                lookX : rightStickX * rightStickScale,
+                lookY : rightStickY * rightStickScale
+            };
+        }
     }
 
     initCanvas() {
@@ -329,6 +440,7 @@ class Game {
     }
 
     update() {
+        this.pollGamepads();
         this.controlShip();
 
         this.calculateGravityAmong(this.asteroids);
@@ -347,29 +459,50 @@ class Game {
         this.calculateCollisionBetween(this.bullets, this.ships);
 
         for(let i = 0; i < 2; i++) {
-            this.camera[i].position.x = this.ships[i].position.x;
-            this.camera[i].position.y = this.ships[i].position.y;
+            this.updateCameraPan(i);
             this.camera[i].update();
+            this.camera[i].position.x = this.ships[i].position.x + this.camera[i].pan.x;
+            this.camera[i].position.y = this.ships[i].position.y + this.camera[i].pan.y;
         }
     }
 
+    updateCameraPan(index) {
+        const camera = this.camera[index];
+        const controller = this.gamepadState[index];
+        const ship = this.ships[index];
+        const pixelRatio = window.devicePixelRatio || 1;
+        const border = cameraShipBorderPixels * pixelRatio;
+        const requestedRadius = cameraPanRadiusPixels * pixelRatio / camera.zoom;
+        const shipRenderRadius = ship.radius * 2;
+        const horizontalLimit = Math.max(0, (this.canvas[index].width / 2 - border) / camera.zoom - shipRenderRadius);
+        const verticalLimit = Math.max(0, (this.canvas[index].height / 2 - border) / camera.zoom - shipRenderRadius);
+        const maximumRadius = Math.min(requestedRadius, horizontalLimit, verticalLimit);
+        // The radial stick values directly set the desired camera offset.
+        // Releasing the stick sets restPan to zero, then Camera.update() eases back to the ship.
+        camera.restPan.x = controller.lookX * maximumRadius;
+        camera.restPan.y = controller.lookY * maximumRadius;
+    }
+
     controlShip() {
+        const playerOneController = this.gamepadState[0];
+        const playerTwoController = this.gamepadState[1];
+
         if(this.ships[0].isAlive === true) {
-            if(this.keyState.KeyA === true) { this.turnShip(this.ships[0], -1); }
-            if(this.keyState.KeyD === true) { this.turnShip(this.ships[0], 1); }
-            if(this.keyState.KeyW === true) { this.thrustShip(this.ships[0]); }
-            if(this.keyState.KeyS === true) { this.ships[0].fireBullet(this); }
-            if(this.keyState.KeyQ === true) { this.zoomCamera(this.camera[0], -1); }
-            if(this.keyState.KeyE === true) { this.zoomCamera(this.camera[0], 1); }
+            if(this.keyState.KeyA === true || playerOneController.turnLeft === true) { this.turnShip(this.ships[0], -1); }
+            if(this.keyState.KeyD === true || playerOneController.turnRight === true) { this.turnShip(this.ships[0], 1); }
+            if(this.keyState.KeyW === true || playerOneController.thrust === true) { this.thrustShip(this.ships[0]); }
+            if(this.keyState.KeyS === true || playerOneController.fire === true) { this.ships[0].fireBullet(this); }
+            if(this.keyState.KeyQ === true || playerOneController.zoomOut === true) { this.zoomCamera(this.camera[0], -1); }
+            if(this.keyState.KeyE === true || playerOneController.zoomIn === true) { this.zoomCamera(this.camera[0], 1); }
         }
 
         if(this.ships[1].isAlive === true) {
-            if(this.keyState.Numpad4 === true) { this.turnShip(this.ships[1], -1); }
-            if(this.keyState.Numpad6 === true) { this.turnShip(this.ships[1], 1); }
-            if(this.keyState.Numpad8 === true) { this.thrustShip(this.ships[1]); }
-            if(this.keyState.Numpad5 === true) { this.ships[1].fireBullet(this); }
-            if(this.keyState.Numpad7 === true) { this.zoomCamera(this.camera[1], -1); }
-            if(this.keyState.Numpad9 === true) { this.zoomCamera(this.camera[1], 1); }
+            if(this.keyState.Numpad4 === true || playerTwoController.turnLeft === true) { this.turnShip(this.ships[1], -1); }
+            if(this.keyState.Numpad6 === true || playerTwoController.turnRight === true) { this.turnShip(this.ships[1], 1); }
+            if(this.keyState.Numpad8 === true || playerTwoController.thrust === true) { this.thrustShip(this.ships[1]); }
+            if(this.keyState.Numpad5 === true || playerTwoController.fire === true) { this.ships[1].fireBullet(this); }
+            if(this.keyState.Numpad7 === true || playerTwoController.zoomOut === true) { this.zoomCamera(this.camera[1], -1); }
+            if(this.keyState.Numpad9 === true || playerTwoController.zoomIn === true) { this.zoomCamera(this.camera[1], 1); }
         }
     }
 
@@ -583,6 +716,9 @@ class Game {
                 ctx.fillText("A/D : Turn ship left/right", 50, 80);
                 ctx.fillText("W : Thrust", 50, 110);
                 ctx.fillText("S: Fire", 50, 140);
+                ctx.fillText("Controller: Left stick/D-pad to move, A/Cross to fire", 50, 170);
+                ctx.fillText("Controller: L1/R1 to zoom out/in", 50, 200);
+                ctx.fillText("Controller: Right stick to pan camera", 50, 230);
             }
             else {
                 ctx.fillText("Press 'Z' to see controls", 50, 50);
@@ -595,6 +731,9 @@ class Game {
             ctx.fillText("Numpad 4/6 : Turn ship left/right", 50, 80);
             ctx.fillText("Numpad 8 : Thrust", 50, 110);
             ctx.fillText("Numpad 5: Fire", 50, 140);
+            ctx.fillText("Controller: Left stick/D-pad to move, A/Cross to fire", 50, 170);
+            ctx.fillText("Controller: L1/R1 to zoom out/in", 50, 200);
+            ctx.fillText("Controller: Right stick to pan camera", 50, 230);
         }
         else {
             ctx.fillText("Press 'Numpad 0' to see controls", 50, 50);
