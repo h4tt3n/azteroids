@@ -227,6 +227,7 @@ class Game {
         this.maxFrameTime = 0.25;
 
         this.mainLoop = this.mainLoop.bind(this);
+        this.resizeCanvas = this.resizeCanvas.bind(this);
         this.keyDown = this.keyDown.bind(this);
         this.keyUp = this.keyUp.bind(this);
     }
@@ -246,6 +247,7 @@ class Game {
 
         window.addEventListener('keydown', this.keyDown);
         window.addEventListener('keyup', this.keyUp);
+        window.addEventListener('resize', this.resizeCanvas);
     }
 
     initCanvas() {
@@ -256,9 +258,24 @@ class Game {
         this.ctx[1] = this.canvas[1].getContext("2d");
 
         for(let i = 0; i < 2; i++) {
-            this.canvas[i].setAttribute('width', window.innerWidth * 0.5);
-            this.canvas[i].setAttribute('height', window.innerHeight * 1);
             this.camera.push(new Camera());
+        }
+
+        this.resizeCanvas();
+    }
+
+    resizeCanvas() {
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        for(let i = 0; i < this.canvas.length; i++) {
+            const bounds = this.canvas[i].getBoundingClientRect();
+            const width = Math.max(1, Math.round(bounds.width * pixelRatio));
+            const height = Math.max(1, Math.round(bounds.height * pixelRatio));
+
+            if(this.canvas[i].width !== width || this.canvas[i].height !== height) {
+                this.canvas[i].width = width;
+                this.canvas[i].height = height;
+            }
         }
     }
 
@@ -363,8 +380,8 @@ class Game {
     }
 
     thrustShip(ship) {
-        ship.force.x += shipThrustForce * dt * ship.angleVec.x;
-        ship.force.y += shipThrustForce * dt * ship.angleVec.y;
+        ship.force.x += shipThrustForce * ship.angleVec.x;
+        ship.force.y += shipThrustForce * ship.angleVec.y;
     }
 
     zoomCamera(camera, direction) {
@@ -434,18 +451,21 @@ class Game {
         }
     }
 
+    circlesOverlap(objectA, objectB) {
+        const dx = objectB.position.x - objectA.position.x;
+        const dy = objectB.position.y - objectA.position.y;
+        const combinedRadius = objectA.radius + objectB.radius;
+
+        return dx * dx + dy * dy <= combinedRadius * combinedRadius;
+    }
+
     calculateCollisionAmong(array) {
         for(let i = 0; i < array.length - 1; i++) {
             if(array[i].isAlive === false) { continue; }
 
             for(let j = i + 1; j < array.length; j++) {
                 if(array[j].isAlive === false) { continue; }
-
-                const rx = array[i].position.x - array[j].position.x;
-                const ry = array[i].position.y - array[j].position.y;
-                const rSum = array[i].radius + array[j].radius;
-
-                if((Math.abs(rx) > rSum) || (Math.abs(ry) > rSum)) { continue; }
+                if(this.circlesOverlap(array[i], array[j]) === false) { continue; }
 
                 array[i].isAlive = false;
                 array[j].isAlive = false;
@@ -459,12 +479,7 @@ class Game {
 
             for(let i = 0; i < arrayB.length; i++) {
                 if(arrayB[i].isAlive === false) { continue; }
-
-                const rx = arrayB[i].position.x - arrayA[j].position.x;
-                const ry = arrayB[i].position.y - arrayA[j].position.y;
-                const rSum = arrayB[i].radius + arrayA[j].radius;
-
-                if((Math.abs(rx) > rSum) || (Math.abs(ry) > rSum)) { continue; }
+                if(this.circlesOverlap(arrayA[j], arrayB[i]) === false) { continue; }
 
                 arrayB[i].isAlive = false;
                 arrayA[j].isAlive = false;
@@ -488,8 +503,8 @@ class Game {
             this.renderShips(i);
             this.renderPlanets(i);
 
-            this.showControls();
             this.ctx[i].restore();
+            this.showControls(i);
         }
     }
 
@@ -557,33 +572,32 @@ class Game {
         ctx.restore();
     }
 
-    showControls() {
-        this.ctx[0].resetTransform();
-        this.ctx[0].font = "16px Arial";
-        this.ctx[0].fillStyle = "white";
+    showControls(index) {
+        const ctx = this.ctx[index];
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "white";
 
-        if(this.keyState.KeyZ === true) {
-            this.ctx[0].fillText("Q/E : Zoom in/out", 50, 50);
-            this.ctx[0].fillText("A/D : Turn ship left/right", 50, 80);
-            this.ctx[0].fillText("W : Thrust", 50, 110);
-            this.ctx[0].fillText("S: Fire", 50, 140);
+        if(index === 0) {
+            if(this.keyState.KeyZ === true) {
+                ctx.fillText("Q/E : Zoom in/out", 50, 50);
+                ctx.fillText("A/D : Turn ship left/right", 50, 80);
+                ctx.fillText("W : Thrust", 50, 110);
+                ctx.fillText("S: Fire", 50, 140);
+            }
+            else {
+                ctx.fillText("Press 'Z' to see controls", 50, 50);
+            }
+            return;
         }
-        else {
-            this.ctx[0].fillText("Press 'Z' to see controls", 50, 50);
-        }
-
-        this.ctx[1].resetTransform();
-        this.ctx[1].font = "16px Arial";
-        this.ctx[1].fillStyle = "white";
 
         if(this.keyState.Numpad0 === true) {
-            this.ctx[1].fillText("Numpad 7/9 : Zoom in/out", 50, 50);
-            this.ctx[1].fillText("Numpad 4/6 : Turn ship left/right", 50, 80);
-            this.ctx[1].fillText("Numpad 8 : Thrust", 50, 110);
-            this.ctx[1].fillText("Numpad 5: Fire", 50, 140);
+            ctx.fillText("Numpad 7/9 : Zoom in/out", 50, 50);
+            ctx.fillText("Numpad 4/6 : Turn ship left/right", 50, 80);
+            ctx.fillText("Numpad 8 : Thrust", 50, 110);
+            ctx.fillText("Numpad 5: Fire", 50, 140);
         }
         else {
-            this.ctx[1].fillText("Press 'Numpad 0' to see controls", 50, 50);
+            ctx.fillText("Press 'Numpad 0' to see controls", 50, 50);
         }
     }
 
