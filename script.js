@@ -24,14 +24,31 @@ const cameraPanRadiusPixels = 300;
 const cameraShipBorderPixels = 100;
 
 const textureList = [
-    'img/RTS_Crate.png',
-    'img/asteroid01.png',
-    'img/asteroid02.png',
-    'img/asteroid03.png',
-    'img/invaders01.png',
-    'img/invaders02.png',
-    'img/invaders03.png',
-    'img/cartoon-rocket.png',
+    'img/kenney_space-shooter-extension/PNG/Sprites X2/Meteors/spaceMeteors_001.png',
+    'img/kenney_space-shooter-extension/PNG/Sprites X2/Meteors/spaceMeteors_002.png',
+    'img/kenney_space-shooter-extension/PNG/Sprites X2/Meteors/spaceMeteors_003.png',
+    'img/kenney_space-shooter-extension/PNG/Sprites X2/Meteors/spaceMeteors_004.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_big1.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_big2.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_big3.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_big4.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_med1.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorBrown_med3.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_big1.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_big2.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_big3.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_big4.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_med1.png',
+    'img/kenney_space-shooter-remastered/PNG/Meteors/meteorGrey_med2.png',
+    //'img/RTS_Crate.png',
+    //'img/asteroid01.png',
+    //'img/asteroid02.png',
+    //'img/asteroid03.png',
+    //'img/invaders01.png',
+    //'img/invaders02.png',
+    //q'img/invaders03.png',
+    'img/kenney_space-shooter-extension/PNG/Sprites X2/Rockets/spaceRockets_002.png',
+    //'img/cartoon-rocket.png',
     'img/ship for aliens.png'
 ];
 
@@ -157,10 +174,10 @@ class Planet extends SpaceObject {
 class Asteroid extends SpaceObject {
     constructor(planet) {
         super({
-            mass : rnd(1, 20),
+            mass : rnd(2, 100),
             angle : rnd(0, 2 * Math.PI),
             angularVelocity : rnd(-0.2, 0.2),
-            image : getRandomInt(0, 6)
+            image : getRandomInt(0, 15)
         });
 
         this.setCircularOrbit(planet, rnd(3500, 5500), rnd(0, 2 * Math.PI));
@@ -680,7 +697,7 @@ class Game {
 
     renderShips(index) {
         for(let j = 0; j < this.ships.length; j++) {
-            this.renderImageObject(index, this.ships[j], 2, 1, 0);
+            this.renderImageObject(index, this.ships[j], 2, 4, Math.PI * 0.5);
         }
     }
 
